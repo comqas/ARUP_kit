@@ -9,9 +9,9 @@ from RUP import Upd
 
 class RS:
     def __init__(self):
-        with open("tests/RA.pem") as f:
+        with open("RA.pem") as f:
             RAk = import_key(f.read())
-        with open("tests/RS.pem") as f:
+        with open("RS.pem") as f:
             RSk = import_key(f.read())
         self.n = RSk.n
         self._d = RSk.d

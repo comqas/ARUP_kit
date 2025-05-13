@@ -1,3 +1,5 @@
+import os
+
 from Crypto.PublicKey.RSA import import_key
 from ARUP_Exceptions import *
 from ARUP_message import *
@@ -10,9 +12,9 @@ from RUP import Adj
 
 class RA:
     def __init__(self):
-        with open("tests/RA.pem") as f:
+        with open("RA.pem") as f:
             RAk = import_key(f.read())
-        with open("tests/RS.pem") as f:
+        with open("RS.pem") as f:
             RSk = import_key(f.read())
         self.n = RSk.n
         self._d = RAk.d
