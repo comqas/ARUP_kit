@@ -8,8 +8,8 @@ from ARUP_message import *
 from consts import * #t,t_hat,g,eps,modlen
 from hash_based import *
 
-class ARUP_client:
-    def __init__(self,chlen):
+class client:
+    def __init__(self,chlen=100):
             # initialise round variables
             self.R = None
             self.b1 = self.b2 = self.B = self.W = None
@@ -57,8 +57,8 @@ class ARUP_client:
                        fmt = "LMLLSSM")
 
     def Step3(self, M2):
-        r = M2.extract("L")
-        if pow(r, g[1], self.n_hat) == Hm(self.B, self.W, self.a,self.a_prime, self.alpha) % self.n_hat:
+        (r,) = M2.extract("L")
+        if pow(r, g[1], self.n_hat) == H(self.B, self.W, self.a, self.a_prime, self.alpha) % self.n_hat:
             pass # verification
         else:
             raise VerificationError("Step 3")
@@ -85,7 +85,7 @@ class ARUP_client:
 
     def Step7(self, M6):
         r = M6.extract("L")
-        if pow(r,g[1],self.n) == Hm(self.a, self.B, self.W, self.alpha, self.R) % self.n_hat:
+        if pow(r,g[1],self.n) == H(self.a, self.B, self.W, self.alpha, self.R) % self.n_hat:
             pass # verification
         else:
             raise VerificationError("Step 7")

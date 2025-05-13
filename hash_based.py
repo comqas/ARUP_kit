@@ -1,15 +1,26 @@
 from Crypto.Hash import SHA256, SHAKE256
 from consts import modlen
+
+
+def __int_to_bytes(x: int) -> bytes:
+    return x.to_bytes((x.bit_length() + 7) // 8, 'big')
+
 def H_bar(*argv ):
     r = SHA256.new()
     for arg in argv:
-        r.update(arg)
+        if isinstance(arg, int):
+            r.update(__int_to_bytes(arg))
+        else:
+            r.update(arg)
     return r.digest()
 
 def H(*argv):
     r = SHAKE256.new()
     for arg in argv:
-        r.update(arg)
+        if isinstance(arg, int):
+            r.update(__int_to_bytes(arg))
+        else:
+            r.update(arg)
     return int.from_bytes(r.read(modlen//8))
 
 def makebytes(x,len):
@@ -17,15 +28,3 @@ def makebytes(x,len):
     if len=='M': return x.to_bytes(32,'big')
     if len=='S': return x.to_bytes(1,'big')
     raise ValueError("Incorrect length code: "+str(len))
-
-def Hm(*argv, fmt = None):
-    if not fmt: ValueError("fmt=?")
-    i = 0
-    bytst = bytes()
-    for f in fmt:
-        if f == '.':
-            bytst = bytst + argv[i]
-        else:
-            bytst = bytst + makebytes(argv[i],f)
-        i += 1
-    return H(bytst)

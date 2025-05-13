@@ -29,10 +29,12 @@ class RA:
         for _i in range(1,len(g)):
             self.g_inv[_i] = pow(g[_i],-1,self._expm)
 
-
+    def onboard(self,z):
+        self.conn.execute('INSERT INTO KVS (tag,value) VALUES (?,?)', (z,None))
+        self.conn.commit()
     def Step2(self, M1):
         if M1 in self.lastinout1: return self.lastinout1[M1]
-        coupon, z, B, W, a, a_prim, alpha = M1.extract("LLMLLSSM")
+        coupon, z, B, W, a, a_prim, alpha = M1.extract("LMLLSSM")
         if coupon == 0:
             pass  # verification
         elif pow(coupon, g[eps(a, a_prim)], self.n) % self.n == H(z) % self.n:
@@ -57,11 +59,15 @@ class RA:
             pass  # verification
         else:
             raise VerificationError("Step4.i")
-        a, sigma = Message(asigma[0], packed=True).extract("SB")
+        if asigma == (None,):        # format for a=0 sigma = empty
+            a = 0
+            sigma = ""
+        else:
+            a, sigma = Message(asigma[0], packed=True).extract("SB")
         queue_tag = H_bar(z, nu)
         self.c.execute("SELECT value FROM KVS WHERE tag = ?", (queue_tag,))
         verified = False
-        for qel in self.c.fetchall():
+        for (qel,) in self.c.fetchall():
             qelm = Message(qel, packed=True)
             B, W, a_star, a_prime, alpha = qelm.extract("LLSSM")
             if a == a_star and alpha == H_bar(B, W, a_star, a_prime, nu, sigma is None):
@@ -73,7 +79,6 @@ class RA:
         # execute
         self.c.execute("DELETE FROM KVS WHERE tag = ?",(Hbarz,))
         self.c.execute("DELETE FROM KVS WHERE tag = ?",(queue_tag,))
-        self.c.execute("INSERT INTO blocked (tag) VALUES (?)", z)
         self.conn.commit()
 
         a, sigma_prime = Adj(a_prime, sigma)

@@ -9,15 +9,15 @@ def Adj(a, sigma):      # a: proposed reputation level; sigma: current context
     The type of sigma is dictionary"""
 
     if sigma:
-        context =  loads(sigma)
+        context = loads(sigma.decode('utf-8'))
     else:
         context = {}
-    if not rep['updates']: rep['updates'] = []
+    if 'updates' not in context: context['updates'] = []
     # example
-    context['updates'].append(           # append (a,timestamp) to the list tagged "updates" in the context
+    context['updates'].append(           # append (a, timestamp) to the list tagged "updates" in the context
         (a,str(datetime.now()))
          )
-    return a, dumps(context)            # accept recommendation
+    return a, dumps(context).encode('utf-8')            # accept recommendation
 
 
 def Upd(a,R):       # a: correct current reputation, R: situation report

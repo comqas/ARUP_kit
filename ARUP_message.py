@@ -21,6 +21,9 @@ class Message:
             k += 1
         self.content = ''.join(msg)
 
+    def __str__(self):
+        return "MESSAGE: "+self.content
+
     def dump(self):
         return bytes.fromhex(self.content)
 
@@ -34,11 +37,14 @@ class Message:
                 return tuple(parts)
 
             size = 2*Message.lengths[f]
-            if cursor+size > lenx: return None # wrong format
+            if cursor+size > lenx:
+                raise ValueError("Message shorter than required by format")
             hexstring = self.content[cursor:cursor+size]
-            if f!='M': component = parts.append(int(hexstring,16))
+            if f!='M':
+                component = int(hexstring,16)
             else:
                 component = bytes.fromhex(hexstring)
+            #print("@@",f,component)
             parts.append(component)
             cursor += size
         return tuple(parts)
