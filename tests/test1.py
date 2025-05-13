@@ -1,11 +1,14 @@
 from client import client
 from RA import RA
 from RS import RS
-ra = RA()
-rs = RS()
-cl = client()
-ra.onboard(cl.z[0])
 
+ra = RA()           # launch Registration Authority
+rs = RS()           # launch Reputation Server
+cl = client()       # launch a client
+
+ra.onboard(cl.z[0])         # onboard the client on RA
+
+# ARUP protocol trace
 
 M1 = cl.Step1(None)
 print('M1',M1)
