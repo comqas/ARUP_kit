@@ -23,9 +23,9 @@ class client:
                 self.z = [H_bar(self.z[0])]+self.z
 
             # obtain moduli
-            with open("RA_pub.pem") as f:
+            with open("tests/RA_pub.pem") as f:
                 RAk = import_key(f.read())
-            with open("RS_pub.pem") as f:
+            with open("tests/RS_pub.pem") as f:
                 RSk = import_key(f.read())
             self.n_hat = RAk.n
             self.n = RSk.n
