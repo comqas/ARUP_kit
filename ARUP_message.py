@@ -1,10 +1,13 @@
 class Message:
     lengths = {'S': 1, 'M': 32, 'L': 256}
-    def __init__(self, *argv, fmt=None, bytx = False):
-        if bytx:
+
+    def __init__(self, *argv, fmt=None, packed = False):
+        if packed:
             self.content = argv[0].hex()
             return
-        k=0
+        if not fmt:
+            raise ValueError("can't create a message of unknown format")
+        k = 0
         msg = []
         for arg in argv:
             if fmt[k] == 'B':
@@ -15,8 +18,12 @@ class Message:
                 msg.append(format(arg,"0"+str(2*size)+"x"))
             else:
                 msg.append(arg.hex())
-            k+=1
+            k += 1
         self.content = ''.join(msg)
+
+    def dump(self):
+        return bytes.fromhex(self.content)
+
     def extract(self,fmt):
         cursor = 0
         parts = []
