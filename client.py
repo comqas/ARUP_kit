@@ -1,3 +1,4 @@
+from dbg import dpr
 from Crypto.Random import get_random_bytes
 from Crypto.Random.random import getrandbits
 from Crypto.PublicKey.RSA import import_key
@@ -46,8 +47,9 @@ class client:
         if self.k==0: self.nu = get_random_bytes(32)
         self.b1 = getrandbits(modlen) % self.n_hat
         self.b2 = getrandbits(modlen) % self.n_hat
-        self.B = H(self.phi)*pow(self.b1, t_hat[self.a], self.n_hat) % self.n
-        self.W = self.b2*pow(self.b1, t_hat[self.a], self.n_hat) % self.n
+        self.B = H(self.phi) * pow(self.b1, t_hat[self.a], self.n_hat) % self.n_hat
+        self.W = self.b1 * self.b2  % self.n_hat
+        dpr("unsigned cert", H(self.phi) % self.n_hat)
         self.alpha = H_bar(self.B,self.W,self.a,self.a_prime, self.nu, 1 if self.k>0 else 0)
         return Message(coupon,
                               H_bar(self.z[self.k+1],self.nu),
@@ -67,25 +69,26 @@ class client:
         return Message(self.z[self.k], self.nu, fmt="MM")
 
     def Step5(self, M4, R):
-        self.R = R
+        self.R = R.encode('utf-8') if isinstance(R,str) else R
         a_ast, s1, s2 = M4.extract("SLL")
-        if pow(s1, g[eps(a_ast)]) == self.B:
+        if pow(s1, g[eps(a_ast)], self.n_hat) == self.B and self.W * s2 % self.n_hat == 1:
             pass # verification
         else:
             raise VerificationError("Step 5")
         self.a = a_ast
-        cert = s1*pow(s2*self.b2, t_hat[self.a]/g[eps(self.a)]) % self.n_hat
+        cert = s1*pow(s2*self.b2 % self.n_hat, t_hat[self.a]//g[eps(self.a)], self.n_hat) % self.n_hat
 
-        self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a],self.n) % self.n
-        self.W = self.b2*pow(self.b1,t[self.a]) % self.n
+        self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a], self.n) % self.n
+        self.W = self.b1 * self.b2 % self.n
 
-        self.alpha = H_bar(cert,self.a, self.B, self.W, self.alpha, R)
+        self.alpha = H_bar(cert,self.a, self.B, self.W, self.alpha, self.R)
 
-        return Message(cert, self.a, self.B, self.W, self.alpha, self.phi, R, fmt="LSLLMB")
+        return Message(cert, self.a, self.B, self.W, self.alpha, self.R, fmt="LSLLMB")
 
     def Step7(self, M6):
-        r = M6.extract("L")
-        if pow(r,g[1],self.n) == H(self.a, self.B, self.W, self.alpha, self.R) % self.n_hat:
+        (r,) = M6.extract("L")
+        power = pow(r,g[1],self.n)
+        if power == H(self.a, self.B, self.W, self.alpha, self.R) % self.n:
             pass # verification
         else:
             raise VerificationError("Step 7")

@@ -1,3 +1,4 @@
+from dbg import dpr
 from Crypto.PublicKey.RSA import import_key
 from ARUP_Exceptions import *
 from ARUP_message import *
@@ -37,23 +38,25 @@ class RS:
         if self.c.fetchone():
             VerificationError("Step 6")
         self.conn.execute("INSERT INTO KVS (tag,value) VALUES (?,?)",
-                       (h,
+                       (H_bar(h),
                                     Message(a, B, W, alpha, R, fmt="SLLMB").dump()
                                    )
                        )
         self.conn.commit()
-        out = Message(pow(H(a, B, W, alpha, R), self._d, self.n), fmt="L")
-        self.lastinout1[M5] = out
-        return out
+        M6 = Message(pow(H(a, B, W, alpha, R) % self.n, self.g_inv[1], self.n), fmt="L")
+        self.lastinout5[M5] = M6
+        return M6
 
     def Step8(self, M7):
         if M7 in self.lastinout7: return self.lastinout7[M7]
-        phi = M7.extract("M")
+        (phi,) = M7.extract("M")
         h = H(phi) % self.n_hat
-        queue_tag = h
+        queue_tag = H_bar(h)
         self.c.execute("SELECT value FROM KVS WHERE tag = ?", (queue_tag,))
         verified = False
-        for qel in self.c.fetchall():
+        dbdata = self.c.fetchall()
+        self.c.execute("SELECT * from KVS")
+        for (qel,) in dbdata:
             qelm = Message(qel, packed=True)
             a, B, W, alpha, R = qelm.extract("SLLMB")
             if alpha == H_bar(B, W, a, phi, R):
@@ -61,9 +64,9 @@ class RS:
                 break
         if verified: pass  # verification
         else:
-            raise VerificationError("Step3")
+            raise VerificationError("Step8")
         # execute
-        self.c.execute("INSERT INTO blocked (tag) VALUES (?)", H(h))
+        self.c.execute("INSERT INTO blocked (tag) VALUES (?)", queue_tag)
         self.c.execute("DELETE FROM KVS WHERE tag = ?",(queue_tag,))
         self.conn.commit()
         a_star = Upd(a,R)

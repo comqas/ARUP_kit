@@ -33,7 +33,7 @@ class Message:
         lenx = len(self.content)
         for f in fmt:
             if f == 'B':
-                parts.append(int(self.content[cursor:],16))
+                parts.append(bytes.fromhex(self.content[cursor:]))
                 return tuple(parts)
 
             size = 2*Message.lengths[f]
@@ -44,7 +44,6 @@ class Message:
                 component = int(hexstring,16)
             else:
                 component = bytes.fromhex(hexstring)
-            #print("@@",f,component)
             parts.append(component)
             cursor += size
         return tuple(parts)

@@ -10,6 +10,8 @@ def H_bar(*argv ):
     for arg in argv:
         if isinstance(arg, int):
             r.update(__int_to_bytes(arg))
+        elif isinstance(arg, str):
+            r.update(arg.encode('utf-8'))
         else:
             r.update(arg)
     return r.digest()
@@ -19,6 +21,8 @@ def H(*argv):
     for arg in argv:
         if isinstance(arg, int):
             r.update(__int_to_bytes(arg))
+        elif isinstance(arg, str):
+            r.update(arg.encode('utf-8'))
         else:
             r.update(arg)
     return int.from_bytes(r.read(modlen//8))
