@@ -34,11 +34,10 @@ class client:
     def Step1(self,M7):
         if self.k>0:
             a_ast, s1, s2 = M7.extract("SLL")
-            if pow(s1,g[eps(self.a,a_ast)],self.n) == (self.B and
-                self.W*s2 % self.n == 1): pass # verification
+            if pow(s1,g[eps(self.a,a_ast)],self.n) == self.B and self.W*s2 % self.n == 1: pass # verification
             else:
                 raise VerificationError("Step 1")
-            coupon = s1*pow(s2*self.b2), t[self.a]//g[eps(self.a,a_ast)] % self.n
+            coupon = s1*pow(s2*self.b2, t[self.a]//g[eps(self.a,a_ast)], self.n)  % self.n
             self.a_prime = a_ast
         else:
             coupon = 0
@@ -49,7 +48,6 @@ class client:
         self.b2 = getrandbits(modlen) % self.n_hat
         self.B = H(self.phi) * pow(self.b1, t_hat[self.a], self.n_hat) % self.n_hat
         self.W = self.b1 * self.b2  % self.n_hat
-        dpr("unsigned cert", H(self.phi) % self.n_hat)
         self.alpha = H_bar(self.B,self.W,self.a,self.a_prime, self.nu, 1 if self.k>0 else 0)
         return Message(coupon,
                               H_bar(self.z[self.k+1],self.nu),

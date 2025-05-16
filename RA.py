@@ -1,5 +1,4 @@
-import os
-
+from dbg import dpr
 from Crypto.PublicKey.RSA import import_key
 from ARUP_Exceptions import *
 from ARUP_message import *
@@ -36,18 +35,18 @@ class RA:
         self.conn.commit()
     def Step2(self, M1):
         if M1 in self.lastinout1: return self.lastinout1[M1]
-        coupon, z, B, W, a, a_prim, alpha = M1.extract("LMLLSSM")
+        coupon, z, B, W, a, a_prime, alpha = M1.extract("LMLLSSM")
         if coupon == 0:
             pass  # verification
-        elif pow(coupon, g[eps(a, a_prim)], self.n) % self.n == H(z) % self.n:
+        elif pow(coupon, g[eps(a, a_prime)], self.n) % self.n == H(z) % self.n:
             pass  # verification
         else:
             raise VerificationError("Step 2")
         self.c.execute("INSERT INTO KVS (tag,value) VALUES (?,?)",
-                       (z, Message(B, W, a, a_prim, alpha, fmt="LLSSM").dump())
+                       (z, Message(B, W, a, a_prime, alpha, fmt="LLSSM").dump())
                        )
         self.conn.commit()
-        out = Message(pow(H(B, W, a, a_prim, alpha), self._d, self.n_hat), fmt="L")
+        out = Message(pow(H(B, W, a, a_prime, alpha), self._d, self.n_hat), fmt="L")
         self.lastinout1[M1] = out
         return out
 
@@ -72,7 +71,7 @@ class RA:
         for (qel,) in self.c.fetchall():
             qelm = Message(qel, packed=True)
             B, W, a_star, a_prime, alpha = qelm.extract("LLSSM")
-            if a == a_star and alpha == H_bar(B, W, a_star, a_prime, nu, sigma is None):
+            if a == a_star and alpha == H_bar(B, W, a_star, a_prime, nu, 1 if sigma else 0):
                 verified = True
                 break
         if verified: pass  # verification
