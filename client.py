@@ -81,7 +81,7 @@ class client:
         self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a], self.n) % self.n
         self.W = self.b1 * self.b2 % self.n
 
-        self.alpha = H_bar(cert,self.a, self.B, self.W, self.alpha, self.R)
+        self.alpha = H_bar(self.B, self.W, self.a, self.phi, self.R)
 
         return Message(cert, self.a, self.B, self.W, self.alpha, self.R, fmt="LSLLMB")
 

@@ -66,7 +66,7 @@ class RS:
         else:
             raise VerificationError("Step8")
         # execute
-        self.c.execute("INSERT INTO blocked (tag) VALUES (?)", queue_tag)
+        self.c.execute("INSERT INTO blocked (tag) VALUES (?)", (queue_tag,))
         self.c.execute("DELETE FROM KVS WHERE tag = ?",(queue_tag,))
         self.conn.commit()
         a_star = Upd(a,R)
