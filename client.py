@@ -31,9 +31,12 @@ class client:
             self.n_hat = RAk.n
             self.n = RSk.n
 
+            # report handle
+
     def Step1(self,M7):
         if self.k>0:
             a_ast, s1, s2 = M7.extract("SLL")
+            print("@@@ reputation:", a_ast)
             if pow(s1,g[eps(self.a,a_ast)],self.n) == self.B and self.W*s2 % self.n == 1: pass # verification
             else:
                 raise VerificationError("Step 1")
@@ -46,7 +49,7 @@ class client:
         if self.k==0: self.nu = get_random_bytes(32)
         self.b1 = getrandbits(modlen) % self.n_hat
         self.b2 = getrandbits(modlen) % self.n_hat
-        self.B = H(self.phi) * pow(self.b1, t_hat[self.a], self.n_hat) % self.n_hat
+        self.B = H(self.phi) * pow(self.b1, t_hat[self.a_prime], self.n_hat) % self.n_hat
         self.W = self.b1 * self.b2  % self.n_hat
         self.alpha = H_bar(self.B,self.W,self.a,self.a_prime, self.nu, 1 if self.k>0 else 0)
         return Message(coupon,
@@ -74,13 +77,12 @@ class client:
         else:
             raise VerificationError("Step 5")
         self.a = a_ast
-        cert = s1*pow(s2*self.b2 % self.n_hat, t_hat[self.a]//g[eps(self.a)], self.n_hat) % self.n_hat
+        cert = s1*pow(s2*self.b2 % self.n_hat, t_hat[self.a_prime]//g[eps(self.a)], self.n_hat) % self.n_hat
 
         self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a], self.n) % self.n
         self.W = self.b1 * self.b2 % self.n
 
         self.alpha = H_bar(self.B, self.W, self.a, self.phi, self.R)
-
         return Message(cert, self.a, self.B, self.W, self.alpha, self.R, fmt="LSLLMB")
 
     def Step7(self, M6):

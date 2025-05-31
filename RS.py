@@ -33,7 +33,7 @@ class RS:
     def Step6(self, M5):
         if M5 in self.lastinout5: return self.lastinout5[M5]
         cert, a, B, W,  alpha, R = M5.extract("LSLLMB")
-        h = pow(cert,g[eps(a)],self.n_hat) % self.n_hat
+        h = pow(cert,g[eps(a)],self.n_hat)     #h = H(phi)
         self.c.execute("SELECT ? in blocked as outcome",(H_bar(h),))
         if self.c.fetchone():
             VerificationError("Step 6")
@@ -55,7 +55,6 @@ class RS:
         self.c.execute("SELECT value FROM KVS WHERE tag = ?", (queue_tag,))
         verified = False
         dbdata = self.c.fetchall()
-        self.c.execute("SELECT * from KVS")
         for (qel,) in dbdata:
             qelm = Message(qel, packed=True)
             a, B, W, alpha, R = qelm.extract("SLLMB")
@@ -64,6 +63,7 @@ class RS:
                 break
         if verified: pass  # verification
         else:
+            self.c.execute("select tag FROM KVS")
             raise VerificationError("Step8")
         # execute
         self.c.execute("INSERT INTO blocked (tag) VALUES (?)", (queue_tag,))
