@@ -1,49 +1,50 @@
 from client import client
 from RA import RA
 from RS import RS
+from random import randint
 
 ra = RA()           # launch Registration Authority
 rs = RS()           # launch Reputation Server
-cl1 = client()      # launch client 1
-cl2 = client()      # launch client 2
 
-ra.onboard(cl1.z[0])         # onboard the client1 on RA
-ra.onboard(cl2.z[0])         # onboard the client2 on RA
+def swarm(*args):
+    procs = []
+    cls = []
+    for arg in args:
+        cl = client()
+        ra.onboard(cl.z[0])  # onboard the client on RA
+        M = cl.Step1(None)
+        cls.append(cl)
+        procs.append((2,M))
+    tot = len (cls)
+    clock = 0
 
-# ARUP protocol trace
+    while(True):
+        active = randint(0,tot-1)
+        step, Message = procs[active]
+        cl = cls[active]
+        print("active process:", active, "step:", step)
+        if step == 1:
+            M = cl.Step1(Message)
+        elif step == 2:
+            M = ra.Step2(Message)
+        elif step == 3:
+            M = cl.Step3(Message)
+        elif step == 4:
+            M = ra.Step4(Message)
+        elif step == 5:
+            cl.report("clock {}, client {} report".format(clock,active))
+            M = cl.Step5(Message)
+        elif step == 6:
+            M = rs.Step6(Message)
+        elif step == 7:
+            M = cl.Step7(Message)
+        elif step == 8:
+            M = rs.Step8(Message)
+        step = step + 1 if step < 8 else 1
+        procs[active] = (step, M)
+        clock += 1
+        if clock % 250 == 0 and input("ticks "+str(clock)+". stop?").startswith('y'): break
 
-M11 = cl1.Step1(None)
-M21 = ra.Step2(M11)
-M31 = cl1.Step3(M21)
-
-M12 = cl2.Step1(None)
-
-
-
-print('M3',M3)
-M4 = ra.Step4(M3)
-print('M4',M4)
-M5 = cl.Step5(M4, "some report")
-print('M5',M5)
-M6 = rs.Step6(M5)
-print('M6',M6)
-M7 = cl.Step7(M6)
-print('M7',M7)
-M8 = rs.Step8(M7)
-print('M8',M8)
-M1 = cl.Step1(M8)
-print('M1',M1)
-M2 = ra.Step2(M1)
-print('M2',M2)
-M3 = cl.Step3(M2)
-print('M3',M3)
-M4 = ra.Step4(M3)
-print('M4',M4)
-M5 = cl.Step5(M4, "another one")
-print('M5',M5)
-M6 = rs.Step6(M5)
-print('M6',M6)
-M7 = cl.Step7(M6)
-print('M7',M7)
-M8 = rs.Step8(M7)
-print('M8',M8)
+swarm(client(),client(),client())
+print ("RA Cache usage:", len(ra.lastinout1.keys())+len(ra.lastinout3.keys()))
+print ("RS Cache usage:", len(rs.lastinout5.keys())+len(rs.lastinout7.keys()))

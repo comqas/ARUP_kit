@@ -10,10 +10,10 @@ from RUP import Adj
 
 
 class RA:
-    def __init__(self):
+    def __init__(self, cache_lim = 100):
         with open("RA.pem") as f:
             RAk = import_key(f.read())
-        with open("RS.pem") as f:
+        with open("RS_pub.pem") as f:
             RSk = import_key(f.read())
         self.n = RSk.n
         self._d = RAk.d
@@ -24,11 +24,17 @@ class RA:
         self.c.execute('CREATE TABLE KVS ("tag" BLOB NOT NULL, "value" BLOB)')
         self.c.execute('CREATE TABLE "blocked" ("tag" BLOB, PRIMARY KEY("tag"))')
         self.conn.commit()
+
         self.lastinout1 = {}
+        self.cache_size1 = 0
         self.lastinout3 = {}
+        self.cache_size3 = 0
+        self.cache_lim = cache_lim
+
         self.g_inv = list(g)
         for _i in range(1,len(g)):
             self.g_inv[_i] = pow(g[_i],-1,self._expm)
+
 
     def onboard(self,z):
         self.conn.execute('INSERT INTO KVS (tag,value) VALUES (?,?)', (z,None))
@@ -48,6 +54,10 @@ class RA:
         self.conn.commit()
         out = Message(pow(H(B, W, a, a_prime, alpha), self._d, self.n_hat), fmt="L")
         self.lastinout1[M1] = out
+        self.cache_size1 += 1
+        if self.cache_size1 > self.cache_lim:
+            del self.lastinout1[list(self.lastinout1)[0]]
+            self.cache_size1 -= 1
         return out
 
     def Step4(self, M3):
@@ -91,6 +101,11 @@ class RA:
         s2 = pow(W,-1,self.n_hat)
         M4 = Message(a,s1,s2,fmt="SLL")
         self.lastinout3[M3]=M4
+        self.cache_size3 += 1
+        if self.cache_size3 > self.cache_lim:
+            del self.lastinout3[list(self.lastinout3)[0]]
+            self.cache_size3 -= 1
+
         return M4
 if __name__ == "__main__":
     obj = RA()

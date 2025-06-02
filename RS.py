@@ -9,8 +9,8 @@ from math import lcm
 from RUP import Upd
 
 class RS:
-    def __init__(self):
-        with open("RA.pem") as f:
+    def __init__(self, cache_lim=100):
+        with open("RA_pub.pem") as f:
             RAk = import_key(f.read())
         with open("RS.pem") as f:
             RSk = import_key(f.read())
@@ -18,13 +18,20 @@ class RS:
         self._d = RSk.d
         self.n_hat = RAk.n
         self._expm = lcm((RSk.p - 1), (RSk.q - 1))
+
         self.conn = connect(":memory:")
         self.c = self.conn.cursor()
         self.c.execute('CREATE TABLE KVS ("tag" BLOB NOT NULL, "value" BLOB)')
         self.c.execute('CREATE TABLE "blocked" ("tag" BLOB, PRIMARY KEY("tag"))')
         self.conn.commit()
+
         self.lastinout5 = {}
+        self.cache_size5 = 0
         self.lastinout7 = {}
+        self.cache_size7 = 0
+        self.cache_lim = cache_lim
+
+
         self.g_inv = list(g)
         for _i in range(1,len(g)):
             self.g_inv[_i] = pow(g[_i],-1,self._expm)
@@ -45,6 +52,10 @@ class RS:
         self.conn.commit()
         M6 = Message(pow(H(a, B, W, alpha, R) % self.n, self.g_inv[1], self.n), fmt="L")
         self.lastinout5[M5] = M6
+        self.cache_size5 += 1
+        if self.cache_size5 > self.cache_lim:
+            del self.lastinout5[list(self.lastinout5)[0]]
+            self.cache_size5 -= 1
         return M6
 
     def Step8(self, M7):
@@ -74,6 +85,10 @@ class RS:
         s2 = pow(W,-1,self.n)
         M8 = Message(a_star,s1,s2,fmt="SLL")
         self.lastinout7[M7]=M8
+        self.cache_size7 += 1
+        if self.cache_size7 > self.cache_lim:
+            del self.lastinout7[list(self.lastinout7)[0]]
+            self.cache_size7 -= 1
         return M8
 if __name__ == "__main__":
     obj = RA()

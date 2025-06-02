@@ -30,13 +30,16 @@ class client:
                 RSk = import_key(f.read())
             self.n_hat = RAk.n
             self.n = RSk.n
+            self.R = None   # report handle
 
-            # report handle
+    def report(self, report):
+        self.R = report
+        self.R = report.encode('utf-8') if isinstance(report,str) else report
+
 
     def Step1(self,M7):
         if self.k>0:
             a_ast, s1, s2 = M7.extract("SLL")
-            print("@@@ reputation:", a_ast)
             if pow(s1,g[eps(self.a,a_ast)],self.n) == self.B and self.W*s2 % self.n == 1: pass # verification
             else:
                 raise VerificationError("Step 1")
@@ -69,14 +72,15 @@ class client:
         self.k += 1
         return Message(self.z[self.k], self.nu, fmt="MM")
 
-    def Step5(self, M4, R):
-        self.R = R.encode('utf-8') if isinstance(R,str) else R
+    def Step5(self, M4):
+        if not self.R: raise ValueError("Report can't be empty")
         a_ast, s1, s2 = M4.extract("SLL")
         if pow(s1, g[eps(a_ast)], self.n_hat) == self.B and self.W * s2 % self.n_hat == 1:
             pass # verification
         else:
             raise VerificationError("Step 5")
         self.a = a_ast
+        print("Reputation:", a_ast)
         cert = s1*pow(s2*self.b2 % self.n_hat, t_hat[self.a_prime]//g[eps(self.a)], self.n_hat) % self.n_hat
 
         self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a], self.n) % self.n
@@ -92,6 +96,7 @@ class client:
             pass # verification
         else:
             raise VerificationError("Step 7")
+        self.R = None   # report has been processed
         return Message(self.phi, fmt="M")
 
 if __name__ == "__main__":
