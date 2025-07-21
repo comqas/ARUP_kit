@@ -6,7 +6,8 @@ class Message:
             self.content = argv[0].hex()
             return
         if not fmt:
-            raise ValueError("can't create a message of unknown format")
+            self.content = argv[0]
+            return
         k = 0
         msg = []
         for arg in argv:
@@ -22,7 +23,7 @@ class Message:
         self.content = ''.join(msg)
 
     def __str__(self):
-        return "MESSAGE: "+self.content
+        return self.content
 
     def dump(self):
         return bytes.fromhex(self.content)
