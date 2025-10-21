@@ -1,4 +1,4 @@
-from Crypto.Hash import SHA256, SHAKE256
+from Crypto.Hash import SHA256, SHA512
 from consts import modlen
 
 
@@ -17,15 +17,19 @@ def H_bar(*argv ):
     return r.digest()
 
 def H(*argv):
-    r = SHAKE256.new()
+    r = [0,1,2,3]
+    for k in range(4):
+        r[k] = SHA512.new()
     for arg in argv:
-        if isinstance(arg, int):
-            r.update(__int_to_bytes(arg))
-        elif isinstance(arg, str):
-            r.update(arg.encode('utf-8'))
-        else:
-            r.update(arg)
-    return int.from_bytes(r.read(modlen//8))
+        for k in range(4):
+            kk = bytes([k])
+            if isinstance(arg, int):
+                r[k].update(__int_to_bytes(arg)+kk)
+            elif isinstance(arg, str):
+                r[k].update(arg.encode('utf-8')+kk)
+            else:
+                r[k].update(arg+kk)
+    return int.from_bytes(b''.join([x.digest() for x in r]))
 
 def makebytes(x,len):
     if len=='L': return x.to_bytes(modlen//8,'big')
