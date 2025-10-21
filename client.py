@@ -83,6 +83,10 @@ class client:
         print("Reputation:", a_ast)
         cert = s1*pow(s2*self.b2 % self.n_hat, t_hat[self.a_prime]//g[eps(self.a)], self.n_hat) % self.n_hat
 
+        self.b1 = getrandbits(modlen) % self.n
+        self.b2 = getrandbits(modlen) % self.n
+        self.nu = get_random_bytes(32)
+
         self.B = H(H_bar(self.z[self.k+1], self.nu))*pow(self.b1,t[self.a], self.n) % self.n
         self.W = self.b1 * self.b2 % self.n
 
