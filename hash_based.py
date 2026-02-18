@@ -17,11 +17,12 @@ def H_bar(*argv ):
     return r.digest()
 
 def H(*argv):
-    r = [0,1,2,3]
-    for k in range(4):
+    count = modlen//512
+    r = [0,1,2,3,4,5,6,7][:count]
+    for k in range(count):
         r[k] = SHA512.new()
     for arg in argv:
-        for k in range(4):
+        for k in range(count):
             kk = bytes([k])
             if isinstance(arg, int):
                 r[k].update(__int_to_bytes(arg)+kk)
