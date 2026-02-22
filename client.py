@@ -37,9 +37,9 @@ class client:
         self.R = report.encode('utf-8') if isinstance(report,str) else report
 
 
-    def Step1(self,M7):
+    def Step1(self,M8):
         if self.k>0:
-            a_ast, s1, s2 = M7.extract("SLL")
+            a_ast, s1, s2 = M8.extract("SLL")
             if pow(s1,g[eps(self.a,a_ast)],self.n) == self.B and self.W*s2 % self.n == 1: pass # verification
             else:
                 raise VerificationError("Step 1")
