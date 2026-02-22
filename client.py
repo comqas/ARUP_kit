@@ -32,9 +32,9 @@ class client:
             self.n = RSk.n
             self.R = None   # report handle
 
-    def report(self, report):
-        self.R = report
-        self.R = report.encode('utf-8') if isinstance(report,str) else report
+    def report(self, rep):
+        self.R = rep
+        self.R = rep.encode('utf-8') if isinstance(rep,str) else rep
 
 
     def Step1(self,M8):
